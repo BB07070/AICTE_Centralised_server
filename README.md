@@ -64,7 +64,7 @@ The complaint appears on the targeted Department Admin's Web Portal. It goes thr
 | **Frontend & UI** | HTML5, CSS3, Vanilla JS, Tailwind CSS |
 | **Core Backend** | FastAPI, Uvicorn (ASGI), Python 3 |
 | **Database** | SQLite (Relational Storage) |
-| **Network & Tunneling** | Ngrok (Public Port Forwarding), TCP/IP, HTTP/1.1 |
+| **Network & Tunneling** | Ngrok (Public Port Forwarding), TCP/IP, HTTPS |
 | **Security Auth** | OAuth 2.0 / Token-Based Sessions, TLS 1.3, AES-256 |
 
 ---
