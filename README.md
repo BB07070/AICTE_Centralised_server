@@ -12,8 +12,7 @@
 
 <br>
 
-*Insert your architecture workflow image here by dragging and dropping it into the GitHub editor!*
-<!-- ![Architecture Workflow](link-to-your-image.png) -->
+
 
 </div>
 
