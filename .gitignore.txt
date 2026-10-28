@@ -1,0 +1,12 @@
+# Python Virtual Environments & Caches
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Local Databases
+complaints.db
+
+# Admin & Master Session Tokens
+.session
+.session_*

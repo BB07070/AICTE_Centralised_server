@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini AICTE Admin Portal</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        input, button, select { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #004494; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8f9fa; }
+        .hidden { display: none; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="login-section">
+    <h1>Admin Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p id="login-msg" style="color: red;"></p>
+</div>
+
+<div class="container hidden" id="dashboard-section">
+    <h1>Admin Dashboard - <span id="dept-name"></span></h1>
+    <button onclick="logout()" style="background: #dc3545; width: auto; float: right;">Logout</button>
+    <button onclick="fetchComplaints()" style="width: auto;">Refresh Data</button>
+    
+    <table id="complaints-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Institution</th>
+                <th>Category</th>
+                <th>Dept</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <hr>
+    <h2>Take Action</h2>
+    <input type="text" id="act-id" placeholder="Complaint ID (e.g., C-XXXXXX)">
+    <input type="text" id="act-desc" placeholder="Action Description">
+    <button onclick="takeAction()">Submit Action</button>
+    <p id="act-msg"></p>
+</div>
+
+<div class="footer">
+    Mini AICTE Complaint Management System | System Core Maintained by Biswajit Biswas
+</div>
+
+<script>
+    const SERVER = "http://localhost:8000"; // Change to Ngrok URL if testing remotely
+    let sessionToken = "";
+
+    async function login() {
+        const u = document.getElementById("username").value;
+        const p = document.getElementById("password").value;
+        
+        try {
+            const res = await fetch(`${SERVER}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                sessionToken = data.token;
+                document.getElementById("login-section").classList.add("hidden");
+                document.getElementById("dashboard-section").classList.remove("hidden");
+                document.getElementById("dept-name").innerText = data.department;
+                fetchComplaints();
+            } else {
+                document.getElementById("login-msg").innerText = data.detail;
+            }
+        } catch (e) {
+            document.getElementById("login-msg").innerText = "Server offline or unreachable.";
+        }
+    }
+
+    async function fetchComplaints() {
+        const res = await fetch(`${SERVER}/complaints`, {
+            headers: { "X-Token": sessionToken }
+        });
+        const data = await res.json();
+        
+        const tbody = document.querySelector("#complaints-table tbody");
+        tbody.innerHTML = "";
+        
+        data.forEach(c => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.institution}</td>
+                    <td>${c.category}</td>
+                    <td>${c.department}</td>
+                    <td>${c.status}</td>
+                    <td><button onclick="document.getElementById('act-id').value='${c.id}'" style="padding: 5px; width:auto;">Select</button></td>
+                </tr>
+            `;
+        });
+    }
+
+    async function takeAction() {
+        const cid = document.getElementById("act-id").value;
+        const actionDesc = document.getElementById("act-desc").value;
+        
+        const res = await fetch(`${SERVER}/complaints/${cid}/actions`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "X-Token": sessionToken 
+            },
+            body: JSON.stringify({ action: actionDesc, force: false })
+        });
+        
+        const data = await res.json();
+        const msgEl = document.getElementById("act-msg");
+        
+        if (res.ok) {
+            msgEl.style.color = "green";
+            msgEl.innerText = "Action logged successfully!";
+            fetchComplaints(); // Refresh table
+        } else {
+            msgEl.style.color = "red";
+            msgEl.innerText = data.detail;
+        }
+    }
+
+    function logout() {
+        sessionToken = "";
+        document.getElementById("dashboard-section").classList.add("hidden");
+        document.getElementById("login-section").classList.remove("hidden");
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+    }
+</script>
+
+</body>
+</html>
